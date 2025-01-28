@@ -7,7 +7,9 @@ import (
 
 const (
 	// Format for inputted date strings is `MM/DD/YY`
-	DateFormat = "01/02/06"
+	DateFormat          = "01/02/06"
+	InvalidDateErrMsg   = "invalid date passed in (please use mm/dd/yy)"
+	TooManyParamsErrMsg = "too many additional info strings in addAssignment (optional: 1 max)"
 )
 
 type AssignmentItem struct {
@@ -19,18 +21,17 @@ type AssignmentItem struct {
 type List []AssignmentItem
 
 // Callable methods for go-sheets
-func (l *List) AddAssignment(name string, due string, info ...string) {
+func (l *List) AddAssignment(name string, due string, info ...string) (bool, error) {
 	dueDate, err := time.Parse(DateFormat, due)
 	if err != nil {
-		fmt.Println("Invalid date passed in (please use mm/dd/yy):", err)
-		return
+		return false, fmt.Errorf(InvalidDateErrMsg)
 	}
 
 	var infoPtr *string
-	if len(info) == 0 || len(info) > 1 {
-		// Invalid amount of info passed in
-	} else if len(info) == 1 {
+	if len(info) == 1 {
 		infoPtr = &info[0]
+	} else {
+		return false, fmt.Errorf(TooManyParamsErrMsg)
 	}
 
 	t := AssignmentItem{
@@ -40,4 +41,5 @@ func (l *List) AddAssignment(name string, due string, info ...string) {
 	}
 
 	*l = append(*l, t)
+	return true, nil
 }
