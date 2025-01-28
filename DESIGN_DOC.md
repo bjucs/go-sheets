@@ -3,9 +3,9 @@ go-sheets will be a CLI tool written Go for managing assignments related to cour
 
 ## Supported commands
 - `create-course <course_name>`
-    - User can optionally include a `<class_description>` parameter 
+    - User can optionally include an additional `<class_description>` parameter 
 - `create-assignment <assignment_name>` 
-    - User will be prompted for other info, such as `due_date` and `info` (optional)
+    - User will be prompted for other info, such as `due_date` (required) and `info` (optional notes)
 - `list-courses` 
 - `list-assignments <course_name>`
 - `remove-course <course_name>`
@@ -15,6 +15,8 @@ go-sheets will be a CLI tool written Go for managing assignments related to cour
 ## Implementation plan
 1. Create initial functionality for parsing in user commands 
 2. Verify parsing functionality via unit tests
-3. Implement backend logic for writing/retrieving data via the Google Sheets API 
-4. Verify full functional logic via more comprehensive unit tests
-5. Verify go-sheets works as intended across machines & Google Cloud credentials 
+3. Implement initial backend logic for writing/retrieving data via local persistent read/write. 
+4. Verify locally-written data logic works via unit tests
+4. Implement final backend logic for writing/retrieving data via the Google Sheets API 
+5. Verify full functional logic via more comprehensive unit tests
+6. Verify go-sheets works as intended across machines & Google Cloud credentials 
