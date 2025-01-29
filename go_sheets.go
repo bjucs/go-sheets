@@ -3,6 +3,7 @@ package go_sheets
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -23,10 +24,10 @@ func (cm CourseMap) String() string {
 
 	result := ""
 	for _, course := range cm {
-		result += fmt.Sprintf("%s\n\n", course.String())
+		result += fmt.Sprintf("%s\n", course.String())
 	}
 
-	return result
+	return strings.TrimSuffix(result, "\n")
 }
 
 type CourseItem struct {
@@ -41,7 +42,12 @@ func (c CourseItem) String() string {
 		courseInfoStr = fmt.Sprintf("\n%s", *c.Course_Info)
 	}
 
-	return fmt.Sprintf("Course: %s%s", c.Name, courseInfoStr)
+	assignmentsStr := ""
+	if len(c.Assignments) > 0 {
+		assignmentsStr = fmt.Sprintf("\nAssignments:\n%s", c.Assignments.String())
+	}
+
+	return fmt.Sprintf("Course: %s%s%s", c.Name, courseInfoStr, assignmentsStr)
 }
 
 func (c CourseItem) DetailedString() string {

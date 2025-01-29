@@ -19,9 +19,9 @@ func TestAddAssignment_SimpleAdd_Success(t *testing.T) {
 	taskInfo := "Some new task"
 	l.AddAssignment(taskName, dueDate, taskInfo)
 
-	assert.Equal(t, l[0].Name, taskName)
-	assert.Equal(t, getDateFromTime(l[0].DueAt), dueDate)
-	assert.Equal(t, *l[0].Info, taskInfo)
+	assert.Equal(t, taskName, l[0].Name)
+	assert.Equal(t, dueDate, getDateFromTime(l[0].DueAt))
+	assert.Equal(t, taskInfo, *l[0].Info)
 }
 
 func TestAddAssignment_InvalidDateFormat_Failure(t *testing.T) {
@@ -67,7 +67,7 @@ func TestAddAssignment_MultipleSimpleAdds_Success(t *testing.T) {
 		assert.Equal(t, getDateFromTime(l[i].DueAt), expectedDueDates[i])
 
 		if task.Info != nil {
-			assert.Equal(t, *task.Info, expectedTaskInfo[i])
+			assert.Equal(t, expectedTaskInfo[i], *task.Info)
 		}
 	}
 
@@ -150,7 +150,153 @@ func TestViewAssignment_MultipleSimpleViews_Success(t *testing.T) {
 		assert.Equal(t, getDateFromTime(l[i].DueAt), expectedDueDates[i])
 
 		if task.Info != nil {
-			assert.Equal(t, *task.Info, expectedTaskInfo[i])
+			assert.Equal(t, expectedTaskInfo[i], *task.Info)
 		}
 	}
+}
+
+func TestCourseItem_String_NoCourseInfo_NoAssignments_Success(t *testing.T) {
+	course := CourseItem{
+		Name: "Course 1",
+	}
+
+	expected := "Course: Course 1"
+	assert.Equal(t, expected, course.String())
+}
+
+func TestCourseItem_String_WithCourseInfo_NoAssignments_Success(t *testing.T) {
+	courseInfo := "Some course info"
+	course := CourseItem{
+		Name:        "Course 1",
+		Course_Info: &courseInfo,
+	}
+
+	expected := "Course: Course 1\nSome course info"
+	assert.Equal(t, expected, course.String())
+}
+
+func TestCourseItem_String_WithAssignments_Success(t *testing.T) {
+	courseInfo := "Some course info"
+	assignments := AssignmentList{
+		{
+			Name:  "Task 1",
+			Info:  nil,
+			DueAt: time.Date(2025, 2, 2, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	course := CourseItem{
+		Name:        "Course 1",
+		Course_Info: &courseInfo,
+		Assignments: assignments,
+	}
+
+	expected := "Course: Course 1\nSome course info\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n"
+	assert.Equal(t, expected, course.String())
+}
+
+func TestCourseItem_String_WithMultipleAssignments_Success(t *testing.T) {
+	courseInfo := "Course description"
+	assignments := AssignmentList{
+		{
+			Name:  "Task 1",
+			Info:  nil,
+			DueAt: time.Date(2025, 2, 2, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Name:  "Task 2",
+			Info:  nil,
+			DueAt: time.Date(2025, 3, 17, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Name:  "Task 3",
+			Info:  nil,
+			DueAt: time.Date(2025, 8, 24, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	course := CourseItem{
+		Name:        "Course 1",
+		Course_Info: &courseInfo,
+		Assignments: assignments,
+	}
+
+	expected := "Course: Course 1\nCourse description\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n\n3. Task 3\nDue: 08/24/25\n\n"
+	assert.Equal(t, expected, course.String())
+}
+
+func TestCourseMap_String_EmptyMap_Success(t *testing.T) {
+	cm := CourseMap{}
+	expected := "No courses available."
+	assert.Equal(t, expected, cm.String())
+}
+
+func TestCourseMap_String_WithCourses_Success(t *testing.T) {
+	courseInfo := "Some course info"
+	assignments := AssignmentList{
+		{
+			Name:  "Task 1",
+			Info:  nil,
+			DueAt: time.Date(2025, 2, 2, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	courseMap := CourseMap{
+		"Course 1": {
+			Name:        "Course 1",
+			Course_Info: &courseInfo,
+			Assignments: assignments,
+		},
+	}
+
+	expected := "Course: Course 1\nSome course info\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n"
+	print(courseMap.String())
+	assert.Equal(t, expected, courseMap.String())
+}
+
+func TestAssignmentItem_String_NoInfo_Success(t *testing.T) {
+	assignment := AssignmentItem{
+		Name:  "Task 1",
+		Info:  nil,
+		DueAt: time.Date(2025, 2, 2, 0, 0, 0, 0, time.UTC),
+	}
+
+	expected := "Task 1\nDue: 02/02/25"
+	assert.Equal(t, expected, assignment.String())
+}
+
+func TestAssignmentItem_String_WithInfo_Success(t *testing.T) {
+	taskInfo := "Some task info"
+	assignment := AssignmentItem{
+		Name:  "Task 1",
+		Info:  &taskInfo,
+		DueAt: time.Date(2025, 2, 2, 0, 0, 0, 0, time.UTC),
+	}
+
+	expected := "Task 1\nSome task info\nDue: 02/02/25"
+	assert.Equal(t, expected, assignment.String())
+}
+
+func TestAssignmentList_String_EmptyList_Success(t *testing.T) {
+	assignmentList := AssignmentList{}
+	expected := "No assignments available."
+	assert.Equal(t, expected, assignmentList.String())
+}
+
+func TestAssignmentList_String_WithAssignments_Success(t *testing.T) {
+	assignments := AssignmentList{
+		{
+			Name:  "Task 1",
+			Info:  nil,
+			DueAt: time.Date(2025, 2, 2, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Name:  "Task 2",
+			Info:  nil,
+			DueAt: time.Date(2025, 3, 17, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	expected := "1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n\n"
+	assert.Equal(t, expected, assignments.String())
 }
