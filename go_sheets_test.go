@@ -12,7 +12,7 @@ func getDateFromTime(t time.Time) string {
 }
 
 func TestAddAssignment_SimpleAdd_Success(t *testing.T) {
-	l := List{}
+	l := AssignmentList{}
 
 	taskName := "New Task"
 	dueDate := "02/02/25"
@@ -25,7 +25,7 @@ func TestAddAssignment_SimpleAdd_Success(t *testing.T) {
 }
 
 func TestAddAssignment_InvalidDateFormat_Failure(t *testing.T) {
-	l := List{}
+	l := AssignmentList{}
 
 	taskName := "New Task"
 	dueDate := "21/02/25"
@@ -36,7 +36,7 @@ func TestAddAssignment_InvalidDateFormat_Failure(t *testing.T) {
 }
 
 func TestAddAssignment_TooManyInfoParams_Failure(t *testing.T) {
-	l := List{}
+	l := AssignmentList{}
 
 	taskName := "New Task"
 	dueDate := "01/12/25"
@@ -48,7 +48,7 @@ func TestAddAssignment_TooManyInfoParams_Failure(t *testing.T) {
 }
 
 func TestAddAssignment_MultipleSimpleAdds_Success(t *testing.T) {
-	l := List{}
+	l := AssignmentList{}
 
 	expectedTaskNames := []string{"task1", "task2", "task3"}
 	expectedDueDates := []string{"02/02/25", "03/17/25", "08/24/25"}
@@ -70,4 +70,19 @@ func TestAddAssignment_MultipleSimpleAdds_Success(t *testing.T) {
 			assert.Equal(t, *task.Info, expectedTaskInfo[i])
 		}
 	}
+}
+
+func TestRemoveAssignment_SimpleRemove_Success(t *testing.T) {
+	l := AssignmentList{}
+
+	taskName := "New Task"
+	dueDate := "02/02/25"
+	taskInfo := "Some new task"
+	println(len(l))
+	l.AddAssignment(taskName, dueDate, taskInfo)
+	println(len(l))
+	l.RemoveAssignment(0)
+	println(len(l))
+
+	assert.Equal(t, 0, len(l))
 }
