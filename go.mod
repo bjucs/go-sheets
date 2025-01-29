@@ -1,16 +1,13 @@
-module go-sheets
+module github.com/bjucs/go-sheets
 
 go 1.23.5
 
 require github.com/stretchr/testify v1.10.0
 
+replace go-sheets/go_sheets => ./go_sheets
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/tools v0.29.0 // indirect
-	golang.org/x/tools/cmd/gorename v0.1.0-deprecated // indirect
-	golang.org/x/tools/cmd/guru v0.1.1-deprecated // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
