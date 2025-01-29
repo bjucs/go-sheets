@@ -36,7 +36,7 @@ func (l *AssignmentList) AddAssignment(name string, due string, info ...string) 
 	var infoPtr *string
 	if len(info) == 1 {
 		infoPtr = &info[0]
-	} else {
+	} else if len(info) > 1 {
 		return false, errors.New(TooManyParamsErrMsg)
 	}
 

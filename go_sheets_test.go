@@ -55,7 +55,7 @@ func TestAddAssignment_MultipleSimpleAdds_Success(t *testing.T) {
 	expectedTaskInfo := []string{"Very difficult!", "Not very difficult!"}
 
 	for i := 0; i < len(expectedTaskNames); i++ {
-		if i < len(expectedTaskNames)-1 {
+		if i < len(expectedTaskInfo) {
 			l.AddAssignment(expectedTaskNames[i], expectedDueDates[i], expectedTaskInfo[i])
 		} else {
 			l.AddAssignment(expectedTaskNames[i], expectedDueDates[i])
@@ -70,6 +70,8 @@ func TestAddAssignment_MultipleSimpleAdds_Success(t *testing.T) {
 			assert.Equal(t, *task.Info, expectedTaskInfo[i])
 		}
 	}
+
+	assert.Equal(t, 3, len(l))
 }
 
 func TestRemoveAssignment_SimpleRemove_Success(t *testing.T) {
@@ -103,4 +105,26 @@ func TestRemoveAssignment_SliceOutOfBounds_Failure(t *testing.T) {
 	_, err := l.RemoveAssignment(3)
 
 	assert.EqualErrorf(t, err, InvalidSliceRemoveErrMsg, "Error should be: %v, got: %v")
+}
+
+func TestRemoveAssignment_MultipleSimpleRemoves_Success(t *testing.T) {
+	l := AssignmentList{}
+
+	expectedTaskNames := []string{"task1", "task2", "task3"}
+	expectedDueDates := []string{"02/02/25", "03/17/25", "08/24/25"}
+	expectedTaskInfo := []string{"Very difficult!", "Not very difficult!"}
+
+	for i := 0; i < len(expectedTaskNames); i++ {
+		if i < len(expectedTaskNames)-1 {
+			l.AddAssignment(expectedTaskNames[i], expectedDueDates[i], expectedTaskInfo[i])
+		} else {
+			l.AddAssignment(expectedTaskNames[i], expectedDueDates[i])
+		}
+	}
+
+	l.RemoveAssignment(0)
+	l.RemoveAssignment(0)
+
+	assert.Equal(t, 1, len(l))
+	assert.Equal(t, "task3", l[0].Name)
 }
