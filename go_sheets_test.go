@@ -78,11 +78,29 @@ func TestRemoveAssignment_SimpleRemove_Success(t *testing.T) {
 	taskName := "New Task"
 	dueDate := "02/02/25"
 	taskInfo := "Some new task"
-	println(len(l))
+
 	l.AddAssignment(taskName, dueDate, taskInfo)
-	println(len(l))
 	l.RemoveAssignment(0)
-	println(len(l))
 
 	assert.Equal(t, 0, len(l))
+}
+
+func TestRemoveAssignment_EmptySlice_Failure(t *testing.T) {
+	l := AssignmentList{}
+	_, err := l.RemoveAssignment(0)
+
+	assert.EqualErrorf(t, err, InvalidSliceRemoveErrMsg, "Error should be: %v, got: %v")
+}
+
+func TestRemoveAssignment_SliceOutOfBounds_Failure(t *testing.T) {
+	l := AssignmentList{}
+
+	taskName := "New Task"
+	dueDate := "02/02/25"
+	taskInfo := "Some new task"
+
+	l.AddAssignment(taskName, dueDate, taskInfo)
+	_, err := l.RemoveAssignment(3)
+
+	assert.EqualErrorf(t, err, InvalidSliceRemoveErrMsg, "Error should be: %v, got: %v")
 }
