@@ -128,3 +128,29 @@ func TestRemoveAssignment_MultipleSimpleRemoves_Success(t *testing.T) {
 	assert.Equal(t, 1, len(l))
 	assert.Equal(t, "task3", l[0].Name)
 }
+
+func TestViewAssignment_MultipleSimpleViews_Success(t *testing.T) {
+	l := AssignmentList{}
+
+	expectedTaskNames := []string{"task1", "task2", "task3"}
+	expectedDueDates := []string{"02/02/25", "03/17/25", "08/24/25"}
+	expectedTaskInfo := []string{"Very difficult!", "Not very difficult!"}
+
+	for i := 0; i < len(expectedTaskNames); i++ {
+		if i < len(expectedTaskInfo) {
+			l.AddAssignment(expectedTaskNames[i], expectedDueDates[i], expectedTaskInfo[i])
+		} else {
+			l.AddAssignment(expectedTaskNames[i], expectedDueDates[i])
+		}
+	}
+
+	for i := range l {
+		task := l[i]
+		assert.Equal(t, task.Name, expectedTaskNames[i])
+		assert.Equal(t, getDateFromTime(l[i].DueAt), expectedDueDates[i])
+
+		if task.Info != nil {
+			assert.Equal(t, *task.Info, expectedTaskInfo[i])
+		}
+	}
+}
