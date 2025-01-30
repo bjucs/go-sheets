@@ -21,7 +21,7 @@ type AssignmentList = courseapi.AssignmentList
 type AssignmentItem = courseapi.AssignmentItem
 
 var (
-	courseMap courseapi.CourseMap
+	courseMap CourseMap
 )
 
 func init() {
