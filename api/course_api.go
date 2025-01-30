@@ -1,4 +1,4 @@
-package go_sheets
+package courseapi
 
 import (
 	"errors"
@@ -24,7 +24,7 @@ func (cm CourseMap) String() string {
 
 	result := ""
 	for _, course := range cm {
-		result += fmt.Sprintf("%s\n", course.String())
+		result += fmt.Sprintf("%s\n\n", course.String())
 	}
 
 	return strings.TrimSuffix(result, "\n")
@@ -42,12 +42,7 @@ func (c CourseItem) String() string {
 		courseInfoStr = fmt.Sprintf("\n%s", *c.Course_Info)
 	}
 
-	assignmentsStr := ""
-	if len(c.Assignments) > 0 {
-		assignmentsStr = fmt.Sprintf("\nAssignments:\n%s", c.Assignments.String())
-	}
-
-	return fmt.Sprintf("Course: %s%s%s", c.Name, courseInfoStr, assignmentsStr)
+	return fmt.Sprintf("Course: %s%s", c.Name, courseInfoStr)
 }
 
 func (c CourseItem) DetailedString() string {

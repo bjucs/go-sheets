@@ -1,4 +1,4 @@
-package go_sheets
+package courseapi
 
 import (
 	"testing"
@@ -175,7 +175,7 @@ func TestCourseItem_String_WithCourseInfo_NoAssignments_Success(t *testing.T) {
 	assert.Equal(t, expected, course.String())
 }
 
-func TestCourseItem_String_WithAssignments_Success(t *testing.T) {
+func TestCourseItem_DetailedString_WithAssignments_Success(t *testing.T) {
 	courseInfo := "Some course info"
 	assignments := AssignmentList{
 		{
@@ -191,11 +191,11 @@ func TestCourseItem_String_WithAssignments_Success(t *testing.T) {
 		Assignments: assignments,
 	}
 
-	expected := "Course: Course 1\nSome course info\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n"
-	assert.Equal(t, expected, course.String())
+	expected := "Course: Course 1\nSome course info\n\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n"
+	assert.Equal(t, expected, course.DetailedString())
 }
 
-func TestCourseItem_String_WithMultipleAssignments_Success(t *testing.T) {
+func TestCourseItem_DetailedString_WithMultipleAssignments_Success(t *testing.T) {
 	courseInfo := "Course description"
 	assignments := AssignmentList{
 		{
@@ -221,8 +221,8 @@ func TestCourseItem_String_WithMultipleAssignments_Success(t *testing.T) {
 		Assignments: assignments,
 	}
 
-	expected := "Course: Course 1\nCourse description\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n\n3. Task 3\nDue: 08/24/25\n\n"
-	assert.Equal(t, expected, course.String())
+	expected := "Course: Course 1\nCourse description\n\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n\n3. Task 3\nDue: 08/24/25\n\n"
+	assert.Equal(t, expected, course.DetailedString())
 }
 
 func TestCourseMap_String_EmptyMap_Success(t *testing.T) {
@@ -249,7 +249,7 @@ func TestCourseMap_String_WithCourses_Success(t *testing.T) {
 		},
 	}
 
-	expected := "Course: Course 1\nSome course info\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n"
+	expected := "Course: Course 1\nSome course info\n"
 	print(courseMap.String())
 	assert.Equal(t, expected, courseMap.String())
 }

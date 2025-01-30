@@ -51,6 +51,8 @@ func main() {
 		switch args[0] {
 		case "info":
 			showInfo()
+		case "list-courses":
+			listCourses()
 		case "create-course":
 			if len(args) < 2 || len(args) > 3 {
 				fmt.Println("Usage: create-course <course_name> [<course_description>]")
@@ -65,6 +67,8 @@ func main() {
 			_, err := createCourse(courseName, courseDescription)
 			if err != nil {
 				fmt.Println("Course already exists")
+			} else {
+				fmt.Printf("Course `%s` successfully created!\n", courseName)
 			}
 		case "create-assignment":
 			if len(args) != 3 {
@@ -135,6 +139,10 @@ remove-assignment <assignment_number>
     - Use the indices provided in the list-courses or list-assignments commands`
 
 	fmt.Println(info)
+}
+
+func listCourses() {
+	fmt.Print(courseMap.String())
 }
 
 func createCourse(courseName string, courseDescription string) (bool, error) {
