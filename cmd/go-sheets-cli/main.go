@@ -53,11 +53,19 @@ func main() {
 			showInfo()
 		case "list-courses":
 			listCourses()
+		case "list-assignments":
+			if len(args) != 2 {
+				fmt.Println("Usage: list-assignments <course_name>")
+				continue
+			}
+			courseName := args[1]
+			listAssignments(courseName)
 		case "create-course":
 			if len(args) < 2 || len(args) > 3 {
 				fmt.Println("Usage: create-course <course_name> [<course_description>]")
 				continue
 			}
+
 			courseName := args[1]
 			var courseDescription string
 			if len(args) == 3 {
@@ -111,6 +119,8 @@ func main() {
 					fmt.Printf("Assignment `%s` successfully created!\n", assignmentName)
 				}
 			}
+		default:
+			fmt.Println("Command not recognized")
 		}
 
 	}
@@ -147,6 +157,18 @@ func listCourses() {
 	fmt.Print(courseMap.String())
 }
 
+func listAssignments(courseName string) {
+	courseItem, exists := courseMap[courseName]
+
+	if exists && hasAssignments(*courseItem) {
+		fmt.Print(courseItem.DetailedString())
+	} else if exists {
+		fmt.Println(courseItem.String())
+	} else {
+		fmt.Println("Course for assignment doesn't exist")
+	}
+}
+
 func createCourse(courseName string, courseDescription string) (bool, error) {
 	_, exists := courseMap[courseName]
 
@@ -154,9 +176,9 @@ func createCourse(courseName string, courseDescription string) (bool, error) {
 		return false, errors.New(CourseAlreadyExistsErrMsg)
 	} else {
 		if emptyDescription(courseDescription) {
-			courseMap[courseName] = CourseItem{Name: courseName, Course_Info: nil, Assignments: AssignmentList{}}
+			courseMap[courseName] = &CourseItem{Name: courseName, Course_Info: nil, Assignments: AssignmentList{}}
 		} else {
-			courseMap[courseName] = CourseItem{Name: courseName, Course_Info: &courseDescription, Assignments: AssignmentList{}}
+			courseMap[courseName] = &CourseItem{Name: courseName, Course_Info: &courseDescription, Assignments: AssignmentList{}}
 		}
 		return true, nil
 	}
@@ -165,4 +187,8 @@ func createCourse(courseName string, courseDescription string) (bool, error) {
 
 func emptyDescription(name string) bool {
 	return name == ""
+}
+
+func hasAssignments(course CourseItem) bool {
+	return len(course.Assignments) > 0
 }

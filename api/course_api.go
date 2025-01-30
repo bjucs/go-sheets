@@ -15,7 +15,7 @@ const (
 	InvalidSliceRemoveErrMsg = "tried to remove an out-of-bounds slice index"
 )
 
-type CourseMap map[string]CourseItem
+type CourseMap map[string]*CourseItem
 
 func (cm CourseMap) String() string {
 	if len(cm) == 0 {
