@@ -106,7 +106,9 @@ func main() {
 				}
 
 				if err != nil {
-					println(err)
+					fmt.Println(err)
+				} else {
+					fmt.Printf("Assignment `%s` successfully created!\n", assignmentName)
 				}
 			}
 		}
