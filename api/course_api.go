@@ -73,6 +73,7 @@ func (l AssignmentList) String() string {
 
 	result := ""
 	for i, item := range l {
+		// Use `i+1` since we want our printed list to be 1-indexed
 		result += fmt.Sprintf("%d. %s\n\n", i+1, item.String())
 	}
 

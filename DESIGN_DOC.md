@@ -8,9 +8,9 @@ go-sheets will be a CLI tool written Go for managing assignments related to cour
     - User will be prompted for other info, such as `due_date` (required) and `info` (optional notes)
 - `list-courses` 
 - `list-assignments <course_name>`
-- `remove-course <course_number>`
-    - `course_number` and `assignment_number` (used in the following command) are 1-based indices viewable using the `list-courses` or `list-assignments` commands
+- `remove-course <course_name>`
 - `remove-assignment <assignment_number>`
+    - `assignment_number` is a 1-based index viewable using the `list-assignments <coursename>` command
 
 ## Implementation plan
 1. Create initial functionality for parsing in user commands 
