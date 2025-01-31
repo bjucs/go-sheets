@@ -11,9 +11,20 @@ import (
 )
 
 const (
-	WelcomeMsg                = "Welcome to the Go-Sheets CLI! Type 'info' for a list of accepted commands, or 'exit' to quit."
-	AssignmentInfoMsg         = "Please input additional <due_date> (MM/DD/YY) and optional [<assignment_info>], space-delimited"
-	CourseAlreadyExistsErrMsg = "this course is has already been added"
+	WelcomeMsg                            = "Welcome to the Go-Sheets CLI! Type 'info' for a list of accepted commands, or 'exit' to quit."
+	AssignmentInfoMsg                     = "Please input additional <due_date> (MM/DD/YY) and optional [<assignment_info>], space-delimited"
+	ListAssignmentsCorrectUsageMsg        = "Usage: list-assignments <course_name>"
+	CreateCourseCorrectUsageMsg           = "Usage: create-course <course_name> [<course_description>]"
+	CreateAssignmentCorrectUsageMsg       = "Usage: create-assignment <course_name> <assignment_name>"
+	RemoveCourseCorrectUsageMsg           = "Usage: remove-course <course_name>"
+	RemoveAssignmentCorrectUsageMsg       = "Usage: remove-assignment <course_name> <assignment_number>"
+	CreateAssignmentCorrectFieldsMsg      = "Fields: <due_date> (MM/DD/YY) [<assignment_info>]"
+	AssignmentCourseDoesntExistMsg        = "Course for assignment doesn't exist"
+	RemovalCourseDoesntExistMsg           = "Course to remove doesn't exist"
+	ValidRemoveIndexMsg                   = "Removal index must be a valid integer"
+	AssignmentRemovalCourseDoesntExistMsg = "Course for assignment removal doesn't exist"
+	RemoveIndexOutOfBoundsMsg             = "Removal index out of bounds (check indices using `list-assignments <coursename>`)"
+	CourseAlreadyExistsErrMsg             = "this course has already been added"
 )
 
 type CourseMap = courseapi.CourseMap
@@ -56,14 +67,14 @@ func main() {
 			listCourses()
 		case "list-assignments":
 			if len(args) != 2 {
-				fmt.Println("Usage: list-assignments <course_name>")
+				fmt.Println(ListAssignmentsCorrectUsageMsg)
 				continue
 			}
 			courseName := args[1]
 			listAssignments(courseName)
 		case "create-course":
 			if len(args) < 2 || len(args) > 3 {
-				fmt.Println("Usage: create-course <course_name> [<course_description>]")
+				fmt.Println(CreateAssignmentCorrectUsageMsg)
 				continue
 			}
 
@@ -75,13 +86,13 @@ func main() {
 
 			_, err := createCourse(courseName, courseDescription)
 			if err != nil {
-				fmt.Println("Course already exists")
+				fmt.Println(err)
 			} else {
 				fmt.Printf("Course `%s` successfully created!\n", courseName)
 			}
 		case "create-assignment":
 			if len(args) != 3 {
-				fmt.Println("Usage: create-assignment <course_name> <assignment_name>")
+				fmt.Println(CreateAssignmentCorrectUsageMsg)
 				continue
 			}
 			courseName := args[1]
@@ -89,7 +100,7 @@ func main() {
 
 			_, exists := courseMap[courseName]
 			if !exists {
-				fmt.Println("Course for assignment doesn't exist")
+				fmt.Println(AssignmentCourseDoesntExistMsg)
 				continue
 			}
 
@@ -101,7 +112,7 @@ func main() {
 
 			args := strings.Fields(input)
 			if len(args) != 1 && len(args) != 2 {
-				fmt.Println("Fields: <due_date> (MM/DD/YY) [<assignment_info>]")
+				fmt.Println(CreateAssignmentCorrectFieldsMsg)
 				continue
 			} else {
 				courseItem := courseMap[courseName]
@@ -122,14 +133,14 @@ func main() {
 			}
 		case "remove-course":
 			if len(args) != 2 {
-				fmt.Println("Usage: remove-course <course_name>")
+				fmt.Println(RemoveCourseCorrectUsageMsg)
 				continue
 			}
 
 			courseName := args[1]
 			_, exists := courseMap[courseName]
 			if !exists {
-				fmt.Println("Course to delete doesn't exist")
+				fmt.Println(RemovalCourseDoesntExistMsg)
 				continue
 			}
 
@@ -137,7 +148,7 @@ func main() {
 			fmt.Printf("Course `%s` successfully removed!\n", courseName)
 		case "remove-assignment":
 			if len(args) != 3 {
-				fmt.Println("Usage: remove-assignment <course_name> <assignment_number>")
+				fmt.Println(RemoveAssignmentCorrectUsageMsg)
 				continue
 			}
 
@@ -145,19 +156,19 @@ func main() {
 			removeIndex, err := strconv.Atoi(args[2])
 
 			if err != nil {
-				fmt.Println("Removal index must be a valid integer")
+				fmt.Println(ValidRemoveIndexMsg)
 				continue
 			}
 
 			courseItem, exists := courseMap[courseName]
 			if !exists {
-				fmt.Println("Course for assignment removal doesn't exist")
+				fmt.Println(AssignmentRemovalCourseDoesntExistMsg)
 				continue
 			}
 
 			_, err = courseItem.Assignments.RemoveAssignment(removeIndex - 1)
 			if err != nil {
-				fmt.Println("Removal index out of bounds (check indices using `list-assignments <coursename>`)")
+				fmt.Println(RemoveIndexOutOfBoundsMsg)
 				continue
 			}
 
