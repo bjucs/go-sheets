@@ -6,6 +6,7 @@ import (
 	"fmt"
 	courseapi "go-sheets/api"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -121,7 +122,7 @@ func main() {
 			}
 		case "remove-course":
 			if len(args) != 2 {
-				fmt.Println("Usage: delete-course <course_name>")
+				fmt.Println("Usage: remove-course <course_name>")
 				continue
 			}
 
@@ -134,6 +135,33 @@ func main() {
 
 			delete(courseMap, courseName)
 			fmt.Printf("Course `%s` successfully removed!\n", courseName)
+		case "remove-assignment":
+			if len(args) != 3 {
+				fmt.Println("Usage: remove-assignment <course_name> <assignment_number>")
+				continue
+			}
+
+			courseName := args[1]
+			removeIndex, err := strconv.Atoi(args[2])
+
+			if err != nil {
+				fmt.Println("Removal index must be a valid integer")
+				continue
+			}
+
+			courseItem, exists := courseMap[courseName]
+			if !exists {
+				fmt.Println("Course for assignment removal doesn't exist")
+				continue
+			}
+
+			_, err = courseItem.Assignments.RemoveAssignment(removeIndex - 1)
+			if err != nil {
+				fmt.Println("Removal index out of bounds (check indices using `list-assignments <coursename>`)")
+				continue
+			}
+
+			fmt.Printf("Assignment number `%d` successfully removed!\n", removeIndex)
 		default:
 			fmt.Println("Command not recognized")
 		}
