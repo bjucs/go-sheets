@@ -19,7 +19,7 @@ type CourseMap map[string]*CourseItem
 
 func (cm CourseMap) String() string {
 	if len(cm) == 0 {
-		return "No courses available."
+		return "No courses available.\n"
 	}
 
 	result := ""
