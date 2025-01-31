@@ -77,7 +77,7 @@ func (l AssignmentList) String() string {
 		result += fmt.Sprintf("%d. %s\n\n", i+1, item.String())
 	}
 
-	return result
+	return strings.TrimSuffix(result, "\n")
 }
 
 func (l *AssignmentList) AddAssignment(name string, due string, info ...string) (bool, error) {

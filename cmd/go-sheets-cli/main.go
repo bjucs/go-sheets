@@ -119,6 +119,21 @@ func main() {
 					fmt.Printf("Assignment `%s` successfully created!\n", assignmentName)
 				}
 			}
+		case "remove-course":
+			if len(args) != 2 {
+				fmt.Println("Usage: delete-course <course_name>")
+				continue
+			}
+
+			courseName := args[1]
+			_, exists := courseMap[courseName]
+			if !exists {
+				fmt.Println("Course to delete doesn't exist")
+				continue
+			}
+
+			delete(courseMap, courseName)
+			fmt.Printf("Course `%s` successfully removed!\n", courseName)
 		default:
 			fmt.Println("Command not recognized")
 		}
