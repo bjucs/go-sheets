@@ -42,12 +42,11 @@ func init() {
 
 func main() {
 	fmt.Println(WelcomeMsg)
-	scanner := bufio.NewScanner(os.Stdin)
+	reader := bufio.NewReader(os.Stdin)
 
 	for {
 		fmt.Print("> ")
-		scanner.Scan()
-		input := scanner.Text()
+		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
 		if strings.ToLower(input) == "exit" {
@@ -73,6 +72,8 @@ func main() {
 			courseName := args[1]
 			listAssignments(courseName)
 		case "create-course":
+			args = strings.SplitN(input, " ", 3)
+
 			if len(args) < 2 || len(args) > 3 {
 				fmt.Println(CreateAssignmentCorrectUsageMsg)
 				continue
@@ -106,11 +107,10 @@ func main() {
 
 			fmt.Println(AssignmentInfoMsg)
 			fmt.Print("> ")
-			scanner.Scan()
-			input := scanner.Text()
+			input, _ := reader.ReadString('\n')
 			input = strings.TrimSpace(input)
 
-			args := strings.Fields(input)
+			args = strings.SplitN(input, " ", 2)
 			if len(args) != 1 && len(args) != 2 {
 				fmt.Println(CreateAssignmentCorrectFieldsMsg)
 				continue

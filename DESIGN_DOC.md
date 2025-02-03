@@ -2,7 +2,7 @@
 go-sheets will be a CLI tool written Go for managing assignments related to courses. It will use the Google Sheets API as a backend. Students can organize their assignments using a simple command-line interface, and a selection of support commands available at their disposal. (May be added to in the future)
 
 ## Supported commands
-- `create-course <course_name>`
+- `create-course <course_name> [<class_description>]`
     - User can optionally include an additional `<class_description>` parameter 
 - `create-assignment <course_name> <assignment_name>` 
     - User will be prompted for other info, such as `due_date` (required) and `info` (optional notes)
