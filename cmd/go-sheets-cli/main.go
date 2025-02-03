@@ -2,12 +2,17 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
-	courseapi "go-sheets/api"
+	courseapi "go-sheets/courseapi"
+	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"google.golang.org/api/option"
+	"google.golang.org/api/sheets/v4"
 )
 
 const (
@@ -31,6 +36,7 @@ type CourseMap = courseapi.CourseMap
 type CourseItem = courseapi.CourseItem
 type AssignmentList = courseapi.AssignmentList
 type AssignmentItem = courseapi.AssignmentItem
+type Service = sheets.Service
 
 var (
 	courseMap CourseMap
@@ -41,6 +47,12 @@ func init() {
 }
 
 func main() {
+	/* Simply connecting to the Google Sheets service using service account
+	creds to start -> backend functionality using an actual sheet will follow */
+	_, err := getSheetsService()
+	if err != nil {
+		log.Fatalf("Unable to successfully connect to sheets service: %v", err)
+	}
 	fmt.Println(WelcomeMsg)
 	reader := bufio.NewReader(os.Stdin)
 
@@ -178,6 +190,13 @@ func main() {
 		}
 
 	}
+}
+
+func getSheetsService() (*Service, error) {
+	ctx := context.Background()
+	srv, err := sheets.NewService(ctx, option.WithCredentialsFile("service-account.json"))
+
+	return srv, err
 }
 
 func showInfo() {
