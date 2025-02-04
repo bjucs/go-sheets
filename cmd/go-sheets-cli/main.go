@@ -33,6 +33,13 @@ const (
 	RemoveIndexOutOfBoundsMsg             = "Removal index out of bounds (check indices using `list-assignments <coursename>`)"
 	CourseAlreadyExistsErrMsg             = "this course has already been added"
 
+	UnsuccessfulLogSetupMsg           = "Unable to successfully setup logging file"
+	UnsuccessfulSheetsSetupMsg        = "Unable to successfully connect to sheets service"
+	UnsuccessfulCourseMapLoadMsg      = "Unable to successfully load courseMap from sheets"
+	UnsuccessfulCourseRemovalMsg      = "Unable to successfully remove course"
+	UnsuccessfulAssignmentCreationMsg = "Unable to successfully create assignment for reason"
+	UnsuccessfulAssignmentRemovalMsg  = "Unable to successfully remove assignment for reason"
+
 	logFile   = "gosheets-cli.log"
 	sheetName = "Sheet1"
 )
@@ -52,12 +59,12 @@ var (
 func init() {
 	_, err := initLog()
 	if err != nil {
-		log.Fatalf("Unable to successfully setup logging file: %v", err)
+		log.Fatalf(UnsuccessfulLogSetupMsg+": %v", err)
 	}
 
 	srv, err = getSheetsService()
 	if err != nil {
-		log.Fatalf("Unable to successfully connect to sheets service: %v", err)
+		log.Fatalf(UnsuccessfulSheetsSetupMsg+": %v", err)
 	}
 
 	spreadsheetId = getOrCreateSpreadsheet(srv, "Course Tracking Sheet")
@@ -65,7 +72,7 @@ func init() {
 
 	courseMap, err = loadCourseMapFromSheets(srv, spreadsheetId)
 	if err != nil {
-		log.Fatalf("Unable to successfully load courseMap from sheets: %v", err)
+		log.Fatalf(UnsuccessfulCourseMapLoadMsg+": %v", err)
 	}
 }
 
@@ -100,7 +107,6 @@ func main() {
 			}
 			courseName := args[1]
 			listAssignments(courseName)
-		// Tested - verified create-course works
 		case "create-course":
 			args = strings.SplitN(input, " ", 3)
 
@@ -157,13 +163,20 @@ func main() {
 				}
 
 				if err != nil {
-					fmt.Println(err)
+					log.Printf(UnsuccessfulAssignmentCreationMsg+": %v", err)
+
+					fmt.Printf("Unable to successfully add assignment `%s` to course `%s`\n", assignmentName, courseName)
 				} else {
 					err := updateCourseRow(srv, copy)
+
 					if err != nil {
-						log.Printf("Could not successfully update course to Google Sheets for reason: %v", err)
+						log.Printf(UnsuccessfulAssignmentCreationMsg+": %v", err)
+
+						fmt.Printf("Unable to successfully create assignment `%s`\n", assignmentName)
 					} else {
 						courseMap[courseName] = &copy
+
+						fmt.Printf("Assignment `%s` successfully created!\n", assignmentName)
 					}
 				}
 			}
@@ -180,8 +193,17 @@ func main() {
 				continue
 			}
 
-			delete(courseMap, courseName)
-			fmt.Printf("Course `%s` successfully removed!\n", courseName)
+			err := removeCourseRow(courseName)
+			if err != nil {
+				log.Printf(UnsuccessfulCourseRemovalMsg+": %v", err)
+
+				fmt.Printf("Unable to successfully remove course `%s`\n", courseName)
+			} else {
+				delete(courseMap, courseName)
+
+				fmt.Printf("Course `%s` successfully removed!\n", courseName)
+			}
+
 		case "remove-assignment":
 			if len(args) != 3 {
 				fmt.Println(RemoveAssignmentCorrectUsageMsg)
@@ -202,13 +224,25 @@ func main() {
 				continue
 			}
 
-			_, err = courseItem.Assignments.RemoveAssignment(removeIndex - 1)
+			copy := courseItem.DeepCopy()
+
+			_, err = copy.Assignments.RemoveAssignment(removeIndex - 1)
 			if err != nil {
 				fmt.Println(RemoveIndexOutOfBoundsMsg)
 				continue
 			}
 
-			fmt.Printf("Assignment number `%d` successfully removed!\n", removeIndex)
+			err = updateCourseRow(srv, copy)
+
+			if err != nil {
+				log.Printf(UnsuccessfulAssignmentRemovalMsg+": %v", err)
+
+				fmt.Printf("Unable to successfully remove assignment number `%d`\n", removeIndex)
+			} else {
+				courseMap[courseName] = &copy
+
+				fmt.Printf("Assignment number `%d` successfully removed!\n", removeIndex)
+			}
 		default:
 			fmt.Println("Command not recognized")
 		}
@@ -353,6 +387,23 @@ func updateCourseRow(srv *sheets.Service, updatedCourse CourseItem) error {
 	return nil
 }
 
+func removeCourseRow(courseName string) error {
+	row, err := findCourseRow(srv, courseName)
+	if err != nil {
+		log.Printf("Failed to find course with name %s in sheet: %v\n", courseName, err)
+
+		return fmt.Errorf("failed to find course to remove within sheet: %v", err)
+	}
+
+	_, err = srv.Spreadsheets.Values.Clear(spreadsheetId, row, &sheets.ClearValuesRequest{}).Do()
+	if err != nil {
+		log.Printf("Failed to update course with name %s in sheet: %v\n", courseName, err)
+
+		return fmt.Errorf("failed to update course: %v", err)
+	}
+	return nil
+}
+
 func showInfo() {
 	info := `Available Commands:
     
@@ -421,7 +472,6 @@ func addCourseToSheets(srv *sheets.Service, spreadsheetId string, course *Course
 		return false, fmt.Errorf("no rows were updated, course addition failed")
 	}
 
-	log.Printf("Successfully added course `%s` to Google Sheets!\n", course.Name)
 	return true, nil
 }
 
