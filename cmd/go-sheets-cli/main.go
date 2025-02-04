@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	courseapi "go-sheets/courseapi"
@@ -32,7 +33,8 @@ const (
 	RemoveIndexOutOfBoundsMsg             = "Removal index out of bounds (check indices using `list-assignments <coursename>`)"
 	CourseAlreadyExistsErrMsg             = "this course has already been added"
 
-	logFile = "gosheets-cli.log"
+	logFile   = "gosheets-cli.log"
+	sheetName = "Sheet1"
 )
 
 type CourseMap = courseapi.CourseMap
@@ -42,27 +44,32 @@ type AssignmentItem = courseapi.AssignmentItem
 type Service = sheets.Service
 
 var (
-	courseMap CourseMap
+	courseMap     CourseMap
+	srv           *Service
+	spreadsheetId string
 )
 
 func init() {
-	courseMap = make(CourseMap)
-}
-
-func main() {
 	_, err := initLog()
 	if err != nil {
 		log.Fatalf("Unable to successfully setup logging file: %v", err)
 	}
 
-	srv, err := getSheetsService()
+	srv, err = getSheetsService()
 	if err != nil {
 		log.Fatalf("Unable to successfully connect to sheets service: %v", err)
 	}
 
-	spreadsheetId := getOrCreateSpreadsheet(srv, "Course Tracking Sheet")
+	spreadsheetId = getOrCreateSpreadsheet(srv, "Course Tracking Sheet")
 	log.Printf("Using spreadsheet id: %s", spreadsheetId)
 
+	courseMap, err = loadCourseMapFromSheets(srv, spreadsheetId)
+	if err != nil {
+		log.Fatalf("Unable to successfully load courseMap from sheets: %v", err)
+	}
+}
+
+func main() {
 	fmt.Println(WelcomeMsg)
 	reader := bufio.NewReader(os.Stdin)
 
@@ -93,6 +100,7 @@ func main() {
 			}
 			courseName := args[1]
 			listAssignments(courseName)
+		// Tested - verified create-course works
 		case "create-course":
 			args = strings.SplitN(input, " ", 3)
 
@@ -138,19 +146,25 @@ func main() {
 				continue
 			} else {
 				courseItem := courseMap[courseName]
+				copy := courseItem.DeepCopy()
 
 				var err error
 
 				if len(args) == 1 {
-					_, err = courseItem.Assignments.AddAssignment(assignmentName, args[0])
+					_, err = copy.Assignments.AddAssignment(assignmentName, args[0])
 				} else {
-					_, err = courseItem.Assignments.AddAssignment(assignmentName, args[0], args[1])
+					_, err = copy.Assignments.AddAssignment(assignmentName, args[0], args[1])
 				}
 
 				if err != nil {
 					fmt.Println(err)
 				} else {
-					fmt.Printf("Assignment `%s` successfully created!\n", assignmentName)
+					err := updateCourseRow(srv, copy)
+					if err != nil {
+						log.Printf("Could not successfully update course to Google Sheets for reason: %v", err)
+					} else {
+						courseMap[courseName] = &copy
+					}
 				}
 			}
 		case "remove-course":
@@ -266,6 +280,79 @@ func getOrCreateSpreadsheet(srv *sheets.Service, title string) string {
 	return createSpreadsheet(srv, title)
 }
 
+func loadCourseMapFromSheets(srv *sheets.Service, spreadsheetId string) (CourseMap, error) {
+	readRange := fmt.Sprintf("%s!A:B", sheetName) // A: Course Name, B: Course JSON
+	resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
+	if err != nil {
+		return nil, fmt.Errorf("unable to read data: %v", err)
+	}
+
+	courseMap := make(CourseMap)
+
+	for _, row := range resp.Values {
+		if len(row) < 2 {
+			continue // Skip incomplete rows
+		}
+
+		courseName := row[0].(string)
+		jsonData := row[1].(string)
+
+		var course CourseItem
+		err := json.Unmarshal([]byte(jsonData), &course)
+		if err != nil {
+			log.Printf("Skipping invalid JSON for course %s: %v\n", courseName, err)
+			continue
+		}
+
+		courseMap[courseName] = &course
+	}
+
+	log.Println("CourseMap loaded from Google Sheets!")
+	return courseMap, nil
+}
+
+func findCourseRow(srv *sheets.Service, courseName string) (string, error) {
+	rangeToSearch := fmt.Sprintf("%s!A:A", sheetName)
+	resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, rangeToSearch).Do()
+	if err != nil {
+		return "", fmt.Errorf("unable to retrieve data: %v", err)
+	}
+
+	for i, row := range resp.Values {
+		if len(row) > 0 && row[0] == courseName {
+			return fmt.Sprintf("%s!A%d:B%d", sheetName, i+1, i+1), nil
+		}
+	}
+	return "", fmt.Errorf("course not found")
+}
+
+func updateCourseRow(srv *sheets.Service, updatedCourse CourseItem) error {
+	row, err := findCourseRow(srv, updatedCourse.Name)
+	if err != nil {
+		return fmt.Errorf("unable to find course to update")
+	}
+
+	jsonData, err := json.Marshal(updatedCourse)
+	if err != nil {
+		return fmt.Errorf("failed to encode CourseItem to JSON: %v", err)
+	}
+
+	values := [][]interface{}{
+		{updatedCourse.Name, string(jsonData)}, // Update A (name) and B (JSON data)
+	}
+	valueRange := &sheets.ValueRange{
+		Values: values,
+	}
+
+	_, err = srv.Spreadsheets.Values.Update(spreadsheetId, row, valueRange).
+		ValueInputOption("RAW").
+		Do()
+	if err != nil {
+		return fmt.Errorf("failed to update course: %v", err)
+	}
+	return nil
+}
+
 func showInfo() {
 	info := `Available Commands:
     
@@ -309,6 +396,35 @@ func listAssignments(courseName string) {
 	}
 }
 
+func addCourseToSheets(srv *sheets.Service, spreadsheetId string, course *CourseItem) (bool, error) {
+	// Serialize the CourseItem to JSON
+	jsonData, err := json.Marshal(course)
+	if err != nil {
+		return false, fmt.Errorf("failed to encode CourseItem to JSON: %v", err)
+	}
+
+	// Prepare the new row (A: Course Name, B: Course JSON)
+	values := [][]interface{}{
+		{course.Name, string(jsonData)},
+	}
+
+	writeRange := fmt.Sprintf("%s!A:B", sheetName)
+	resp, err := srv.Spreadsheets.Values.Append(spreadsheetId, writeRange, &sheets.ValueRange{
+		Values: values,
+	}).ValueInputOption("RAW").Do()
+
+	if err != nil {
+		return false, fmt.Errorf("failed to append new course: %v", err)
+	}
+
+	if resp.Updates.UpdatedRows < 1 {
+		return false, fmt.Errorf("no rows were updated, course addition failed")
+	}
+
+	log.Printf("Successfully added course `%s` to Google Sheets!\n", course.Name)
+	return true, nil
+}
+
 func createCourse(courseName string, courseDescription string) (bool, error) {
 	_, exists := courseMap[courseName]
 
@@ -316,9 +432,24 @@ func createCourse(courseName string, courseDescription string) (bool, error) {
 		return false, errors.New(CourseAlreadyExistsErrMsg)
 	} else {
 		if emptyDescription(courseDescription) {
-			courseMap[courseName] = &CourseItem{Name: courseName, Course_Info: nil, Assignments: AssignmentList{}}
+			newCourse := CourseItem{Name: courseName, Course_Info: nil, Assignments: AssignmentList{}}
+
+			// Try adding course to Google Sheets first
+			success, err := addCourseToSheets(srv, spreadsheetId, &newCourse)
+			if err != nil || !success {
+				return false, fmt.Errorf("failed to add course `%s` to Sheets: %v", courseName, err)
+			}
+
+			courseMap[courseName] = &newCourse
 		} else {
-			courseMap[courseName] = &CourseItem{Name: courseName, Course_Info: &courseDescription, Assignments: AssignmentList{}}
+			newCourse := CourseItem{Name: courseName, Course_Info: &courseDescription, Assignments: AssignmentList{}}
+
+			success, err := addCourseToSheets(srv, spreadsheetId, &newCourse)
+			if err != nil || !success {
+				return false, fmt.Errorf("failed to add course `%s` to Sheets: %v", courseName, err)
+			}
+
+			courseMap[courseName] = &newCourse
 		}
 		return true, nil
 	}

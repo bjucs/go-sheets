@@ -36,6 +36,24 @@ type CourseItem struct {
 	Assignments AssignmentList `json:"assignments"`
 }
 
+func (c CourseItem) DeepCopy() CourseItem {
+	cpy := CourseItem{
+		Name:        c.Name,
+		Assignments: make(AssignmentList, len(c.Assignments)),
+	}
+
+	// Deep copy Course_Info
+	if c.Course_Info != nil {
+		infoCopy := *c.Course_Info // Copy the value
+		cpy.Course_Info = &infoCopy
+	}
+
+	// Deep copy Assignments
+	copy(cpy.Assignments, c.Assignments) // Copy slice content
+
+	return cpy
+}
+
 func (c CourseItem) String() string {
 	courseInfoStr := ""
 	if c.Course_Info != nil {
