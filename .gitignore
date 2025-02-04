@@ -2,3 +2,4 @@
 credentials.json
 service-account.json
 .env
+gosheets-cli.log
