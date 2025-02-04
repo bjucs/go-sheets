@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
@@ -30,6 +31,8 @@ const (
 	AssignmentRemovalCourseDoesntExistMsg = "Course for assignment removal doesn't exist"
 	RemoveIndexOutOfBoundsMsg             = "Removal index out of bounds (check indices using `list-assignments <coursename>`)"
 	CourseAlreadyExistsErrMsg             = "this course has already been added"
+
+	logFile = "gosheets-cli.log"
 )
 
 type CourseMap = courseapi.CourseMap
@@ -47,12 +50,19 @@ func init() {
 }
 
 func main() {
-	/* Simply connecting to the Google Sheets service using service account
-	creds to start -> backend functionality using an actual sheet will follow */
-	_, err := getSheetsService()
+	_, err := initLog()
+	if err != nil {
+		log.Fatalf("Unable to successfully setup logging file: %v", err)
+	}
+
+	srv, err := getSheetsService()
 	if err != nil {
 		log.Fatalf("Unable to successfully connect to sheets service: %v", err)
 	}
+
+	spreadsheetId := getOrCreateSpreadsheet(srv, "Course Tracking Sheet")
+	log.Printf("Using spreadsheet id: %s", spreadsheetId)
+
 	fmt.Println(WelcomeMsg)
 	reader := bufio.NewReader(os.Stdin)
 
@@ -192,11 +202,68 @@ func main() {
 	}
 }
 
+func initLog() (*os.File, error) {
+	f, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return nil, err
+	}
+	log.SetOutput(f)
+	return f, nil
+}
+
 func getSheetsService() (*Service, error) {
 	ctx := context.Background()
 	srv, err := sheets.NewService(ctx, option.WithCredentialsFile("service-account.json"))
 
 	return srv, err
+}
+
+func createSpreadsheet(srv *sheets.Service, title string) string {
+	spreadsheet := &sheets.Spreadsheet{
+		Properties: &sheets.SpreadsheetProperties{
+			Title: title,
+		},
+	}
+
+	resp, err := srv.Spreadsheets.Create(spreadsheet).Do()
+	if err != nil {
+		log.Fatalf("Unable to create spreadsheet: %v", err)
+	}
+
+	log.Println("New Spreadsheet Created!")
+	log.Println("Spreadsheet Title:", resp.Properties.Title)
+	log.Println("Spreadsheet ID:", resp.SpreadsheetId)
+
+	saveToEnv("SPREADSHEET_ID", resp.SpreadsheetId)
+
+	return resp.SpreadsheetId
+}
+
+func saveToEnv(key, value string) {
+	envFile := ".env"
+	f, err := os.OpenFile(envFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Unable to write to .env file: %v", err)
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(fmt.Sprintf("%s=%s\n", key, value))
+	if err != nil {
+		log.Fatalf("Failed to write .env variable: %v", err)
+	}
+}
+
+func getOrCreateSpreadsheet(srv *sheets.Service, title string) string {
+	err := godotenv.Load(".env")
+	if err == nil {
+		if sheetID, exists := os.LookupEnv("SPREADSHEET_ID"); exists {
+			log.Println("Using existing Spreadsheet ID:", sheetID)
+			return sheetID
+		}
+	}
+
+	log.Println("No existing sheet found. Creating a new one...")
+	return createSpreadsheet(srv, title)
 }
 
 func showInfo() {

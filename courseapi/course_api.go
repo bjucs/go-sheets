@@ -31,9 +31,9 @@ func (cm CourseMap) String() string {
 }
 
 type CourseItem struct {
-	Name        string
-	Course_Info *string
-	Assignments AssignmentList
+	Name        string         `json:"name"`
+	Course_Info *string        `json:"course_info,omitempty"`
+	Assignments AssignmentList `json:"assignments"`
 }
 
 func (c CourseItem) String() string {
@@ -50,9 +50,9 @@ func (c CourseItem) DetailedString() string {
 }
 
 type AssignmentItem struct {
-	Name  string
-	Info  *string
-	DueAt time.Time
+	Name  string    `json:"name"`
+	Info  *string   `json:"info,omitempty"`
+	DueAt time.Time `json:"due_at"`
 }
 
 func (a AssignmentItem) String() string {
