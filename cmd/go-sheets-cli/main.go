@@ -33,9 +33,10 @@ const (
 	RemoveIndexOutOfBoundsMsg             = "Removal index out of bounds (check indices using `list-assignments <coursename>`)"
 	CourseAlreadyExistsErrMsg             = "this course has already been added"
 
-	UnsuccessfulLogSetupMsg           = "Unable to successfully setup logging file"
-	UnsuccessfulSheetsSetupMsg        = "Unable to successfully connect to sheets service"
-	UnsuccessfulCourseMapLoadMsg      = "Unable to successfully load courseMap from sheets"
+	UnsuccessfulLogSetupMsg      = "Unable to successfully setup logging file"
+	UnsuccessfulSheetsSetupMsg   = "Unable to successfully connect to sheets service"
+	UnsuccessfulCourseMapLoadMsg = "Unable to successfully load courseMap from sheets"
+
 	UnsuccessfulCourseRemovalMsg      = "Unable to successfully remove course"
 	UnsuccessfulAssignmentCreationMsg = "Unable to successfully create assignment for reason"
 	UnsuccessfulAssignmentRemovalMsg  = "Unable to successfully remove assignment for reason"
