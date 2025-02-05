@@ -427,7 +427,10 @@ remove-course <course_number>
     
 remove-assignment <assignment_number>
     - Removes the assignment at the specified 1-based index
-    - Use the indices provided in the list-courses or list-assignments commands`
+    - Use the indices provided in the list-courses or list-assignments commands
+
+exit
+    - Ends session of go-sheets`
 
 	fmt.Println(info)
 }

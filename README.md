@@ -15,6 +15,7 @@ Students can organize their assignments using a simple command-line interface, a
 - `remove-course <course_name>`
 - `remove-assignment <course_name> <assignment_number>`
     - `assignment_number` is a 1-based index viewable using the `list-assignments <course_name>` command
+- `exit` 
 
 ## Setup and usage
 In order to setup `go-sheets`, you will need a Google Cloud project (and service account credentials), which you can set up by following [this](https://developers.google.com/sheets/api/quickstart/go) Google Cloud Go tutorial.
