@@ -37,6 +37,7 @@ const (
 	UnsuccessfulSheetsSetupMsg   = "Unable to successfully connect to sheets service"
 	UnsuccessfulCourseMapLoadMsg = "Unable to successfully load courseMap from sheets"
 
+	UnsuccessfulCourseCreationMsg     = "Unable to successfully create course for reason"
 	UnsuccessfulCourseRemovalMsg      = "Unable to successfully remove course"
 	UnsuccessfulAssignmentCreationMsg = "Unable to successfully create assignment for reason"
 	UnsuccessfulAssignmentRemovalMsg  = "Unable to successfully remove assignment for reason"
@@ -124,7 +125,9 @@ func main() {
 
 			_, err := createCourse(courseName, courseDescription)
 			if err != nil {
-				fmt.Println(err)
+				log.Printf(UnsuccessfulCourseCreationMsg+": %v", err)
+
+				fmt.Printf("Unable to successfully create course `%s`\n", courseName)
 			} else {
 				fmt.Printf("Course `%s` successfully created!\n", courseName)
 			}
