@@ -80,7 +80,6 @@ func TestAddAssignment_SortedInsertion_Success(t *testing.T) {
 	expectedTaskNames := []string{"Task 1", "Task 2", "Task 3", "Task 4"}
 	expectedDueDates := []string{"01/05/25", "02/20/25", "03/10/25", "05/15/25"}
 
-	// Insert tasks in unsorted order
 	l.AddAssignment("Task 3", "03/10/25")
 	l.AddAssignment("Task 1", "01/05/25")
 	l.AddAssignment("Task 4", "05/15/25")

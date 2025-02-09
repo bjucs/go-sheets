@@ -43,14 +43,12 @@ func (c CourseItem) DeepCopy() CourseItem {
 		Assignments: make(AssignmentList, len(c.Assignments)),
 	}
 
-	// Deep copy Course_Info
 	if c.Course_Info != nil {
-		infoCopy := *c.Course_Info // Copy the value
+		infoCopy := *c.Course_Info
 		cpy.Course_Info = &infoCopy
 	}
 
-	// Deep copy Assignments
-	copy(cpy.Assignments, c.Assignments) // Copy slice content
+	copy(cpy.Assignments, c.Assignments)
 
 	return cpy
 }
