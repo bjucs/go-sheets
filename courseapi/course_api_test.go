@@ -74,6 +74,26 @@ func TestAddAssignment_MultipleSimpleAdds_Success(t *testing.T) {
 	assert.Equal(t, 3, len(l))
 }
 
+func TestAddAssignment_SortedInsertion_Success(t *testing.T) {
+	l := AssignmentList{}
+
+	expectedTaskNames := []string{"Task 1", "Task 2", "Task 3", "Task 4"}
+	expectedDueDates := []string{"01/05/25", "02/20/25", "03/10/25", "05/15/25"}
+
+	// Insert tasks in unsorted order
+	l.AddAssignment("Task 3", "03/10/25")
+	l.AddAssignment("Task 1", "01/05/25")
+	l.AddAssignment("Task 4", "05/15/25")
+	l.AddAssignment("Task 2", "02/20/25")
+
+	for i, task := range l {
+		assert.Equal(t, expectedTaskNames[i], task.Name)
+		assert.Equal(t, expectedDueDates[i], getDateFromTime(l[i].DueAt))
+	}
+
+	assert.Equal(t, len(expectedTaskNames), len(l))
+}
+
 func TestRemoveAssignment_SimpleRemove_Success(t *testing.T) {
 	l := AssignmentList{}
 
@@ -191,7 +211,7 @@ func TestCourseItem_DetailedString_WithAssignments_Success(t *testing.T) {
 		Assignments: assignments,
 	}
 
-	expected := "Course: Course 1\nSome course info\n\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n"
+	expected := "Course: Course 1\nSome course info\n\nAssignments:\n1. Task 1\nDue: 02/02/25\n"
 	assert.Equal(t, expected, course.DetailedString())
 }
 
@@ -221,13 +241,13 @@ func TestCourseItem_DetailedString_WithMultipleAssignments_Success(t *testing.T)
 		Assignments: assignments,
 	}
 
-	expected := "Course: Course 1\nCourse description\n\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n\n3. Task 3\nDue: 08/24/25\n\n"
+	expected := "Course: Course 1\nCourse description\n\nAssignments:\n1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n\n3. Task 3\nDue: 08/24/25\n"
 	assert.Equal(t, expected, course.DetailedString())
 }
 
 func TestCourseMap_String_EmptyMap_Success(t *testing.T) {
 	cm := CourseMap{}
-	expected := "No courses available."
+	expected := "No courses available.\n"
 	assert.Equal(t, expected, cm.String())
 }
 
@@ -297,6 +317,6 @@ func TestAssignmentList_String_WithAssignments_Success(t *testing.T) {
 		},
 	}
 
-	expected := "1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n\n"
+	expected := "1. Task 1\nDue: 02/02/25\n\n2. Task 2\nDue: 03/17/25\n"
 	assert.Equal(t, expected, assignments.String())
 }

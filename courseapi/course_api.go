@@ -3,6 +3,7 @@ package courseapi
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -117,7 +118,7 @@ func (l *AssignmentList) AddAssignment(name string, due string, info ...string) 
 		DueAt: dueDate,
 	}
 
-	*l = append(*l, t)
+	l.insertSorted(t)
 	return true, nil
 }
 
@@ -136,4 +137,15 @@ func (l *AssignmentList) ViewAssignment(index int) (AssignmentItem, error) {
 	}
 
 	return (*l)[index], nil
+}
+
+func (l *AssignmentList) insertSorted(newAssignment AssignmentItem) {
+	index := sort.Search(len(*l), func(i int) bool {
+		return (*l)[i].DueAt.After(newAssignment.DueAt)
+	})
+
+	// Expand slice by 1 to avoid overwriting, then shift elements right & insert
+	*l = append(*l, AssignmentItem{})
+	copy((*l)[index+1:], (*l)[index:])
+	(*l)[index] = newAssignment
 }
